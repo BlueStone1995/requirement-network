@@ -9,7 +9,7 @@ intend to use to ensure alignment.
 
 ## Download Binaries and Docker Images
 
-The installation instructions will utilize `scripts/bootstrap.sh` (available in the fabric repository)
+The installation instructions will utilize `bootstrap.sh` (available in the fabric repository)
 script to download all of the requisite Hyperledger Fabric binaries and docker
 images, and tag the images with the 'latest' tag. Optionally,
 specify a version for fabric, fabric-ca and thirdparty images. If versions
@@ -21,12 +21,10 @@ is aligned with the Fabric version.
 You can also download the script and execute locally:
 
 ```bash
-# Fetch bootstrap.sh from fabric repository using
-curl -sS https://raw.githubusercontent.com/hyperledger/fabric/master/scripts/bootstrap.sh -o ./scripts/bootstrap.sh
 # Change file mode to executable
-chmod +x ./scripts/bootstrap.sh
+chmod +x ./bootstrap.sh
 # Download binaries and docker images
-./scripts/bootstrap.sh [version] [ca version] [thirdparty_version]
+./bootstrap.sh -s [version] [ca version] [thirdparty_version]
 ```
 
 ## License <a name="license"></a>
