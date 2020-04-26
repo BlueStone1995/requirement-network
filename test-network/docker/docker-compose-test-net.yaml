@@ -26,7 +26,9 @@ services:
   orderer.requirementnet.com:
     container_name: orderer.requirementnet.com
     image: hyperledger/fabric-orderer:$IMAGE_TAG
+    dns_search: .
     environment:
+      - GODEBUG=netdns=go
       - FABRIC_LOGGING_SPEC=INFO
       - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
       - ORDERER_GENERAL_LISTENPORT=7050
@@ -59,7 +61,9 @@ services:
   peer0.org1.requirementnet.com:
     container_name: peer0.org1.requirementnet.com
     image: hyperledger/fabric-peer:$IMAGE_TAG
+    dns_search: .
     environment:
+      - GODEBUG=netdns=go
       #Generic peer variables
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
       # the following setting starts chaincode containers on the same
@@ -141,7 +145,9 @@ services:
   peer0.org2.requirementnet.com:
     container_name: peer0.org2.requirementnet.com
     image: hyperledger/fabric-peer:$IMAGE_TAG
+    dns_search: .
     environment:
+      - GODEBUG=netdns=go
       #Generic peer variables
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
       # the following setting starts chaincode containers on the same
@@ -223,7 +229,9 @@ services:
   peer0.org3.requirementnet.com:
     container_name: peer0.org3.requirementnet.com
     image: hyperledger/fabric-peer:$IMAGE_TAG
+    dns_search: .
     environment:
+      - GODEBUG=netdns=go
       #Generic peer variables
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
       # the following setting starts chaincode containers on the same
@@ -305,7 +313,9 @@ services:
   peer0.org4.requirementnet.com:
     container_name: peer0.org4.requirementnet.com
     image: hyperledger/fabric-peer:$IMAGE_TAG
+    dns_search: .
     environment:
+      - GODEBUG=netdns=go
       #Generic peer variables
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
       # the following setting starts chaincode containers on the same
@@ -387,7 +397,9 @@ services:
   peer0.org5.requirementnet.com:
     container_name: peer0.org5.requirementnet.com
     image: hyperledger/fabric-peer:$IMAGE_TAG
+    dns_search: .
     environment:
+      - GODEBUG=netdns=go
       #Generic peer variables
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
       # the following setting starts chaincode containers on the same
