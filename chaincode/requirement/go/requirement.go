@@ -132,8 +132,8 @@ func (s *SmartContract) QueryAllTraces(ctx contractapi.TransactionContextInterfa
 	return results, nil
 }
 
-// updateArtefact updates the fields of trace with given id in world state
-func (s *SmartContract) updateArtefact(ctx contractapi.TransactionContextInterface, traceNumber string, issuer string, artefact string,
+// UpdateArtefact updates the fields of trace with given id in world state
+func (s *SmartContract) UpdateArtefact(ctx contractapi.TransactionContextInterface, traceNumber string, issuer string, artefact string,
 	hash string, date string, state string, message string) error {
 	trace, err := s.QueryTrace(ctx, traceNumber)
 

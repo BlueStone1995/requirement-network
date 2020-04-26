@@ -1,4 +1,3 @@
-
 CHANNEL_NAME="$1"
 CC_SRC_LANGUAGE="$2"
 VERSION="$3"
@@ -11,54 +10,53 @@ VERBOSE="$6"
 : ${DELAY:="3"}
 : ${MAX_RETRY:="5"}
 : ${VERBOSE:="false"}
-CC_SRC_LANGUAGE=`echo "$CC_SRC_LANGUAGE" | tr [:upper:] [:lower:]`
+CC_SRC_LANGUAGE=$(echo "$CC_SRC_LANGUAGE" | tr [:upper:] [:lower:])
 
 FABRIC_CFG_PATH=$PWD/../config/
 
-if [ "$CC_SRC_LANGUAGE" = "go" -o "$CC_SRC_LANGUAGE" = "golang" ] ; then
-	CC_RUNTIME_LANGUAGE=golang
-	CC_SRC_PATH="../chaincode/requirement/go/"
+if [ "$CC_SRC_LANGUAGE" = "go" -o "$CC_SRC_LANGUAGE" = "golang" ]; then
+  CC_RUNTIME_LANGUAGE=golang
+  CC_SRC_PATH="../chaincode/requirement/go/"
 
-	echo Vendoring Go dependencies ...
-	pushd ../chaincode/requirement/go
-	GO111MODULE=on go mod vendor
-	popd
-	echo Finished vendoring Go dependencies
+  echo Vendoring Go dependencies ...
+  pushd ../chaincode/requirement/go
+  GO111MODULE=on go mod vendor
+  popd
+  echo Finished vendoring Go dependencies
 
 elif [ "$CC_SRC_LANGUAGE" = "javascript" ]; then
-	CC_RUNTIME_LANGUAGE=node # chaincode runtime language is node.js
-	CC_SRC_PATH="../chaincode/requirement/javascript/"
+  CC_RUNTIME_LANGUAGE=node # chaincode runtime language is node.js
+  CC_SRC_PATH="../chaincode/requirement/javascript/"
 
 elif [ "$CC_SRC_LANGUAGE" = "java" ]; then
-	CC_RUNTIME_LANGUAGE=java
-	CC_SRC_PATH="../chaincode/requirement/java/build/install/requirement"
+  CC_RUNTIME_LANGUAGE=java
+  CC_SRC_PATH="../chaincode/requirement/java/build/install/requirement"
 
-	echo Compiling Java code ...
-	pushd ../chaincode/requirement/java
-	./gradlew installDist
-	popd
-	echo Finished compiling Java code
+  echo Compiling Java code ...
+  pushd ../chaincode/requirement/java
+  ./gradlew installDist
+  popd
+  echo Finished compiling Java code
 
 elif [ "$CC_SRC_LANGUAGE" = "typescript" ]; then
-	CC_RUNTIME_LANGUAGE=node # chaincode runtime language is node.js
-	CC_SRC_PATH="../chaincode/requirement/typescript/"
+  CC_RUNTIME_LANGUAGE=node # chaincode runtime language is node.js
+  CC_SRC_PATH="../chaincode/requirement/typescript/"
 
-	echo Compiling TypeScript code into JavaScript ...
-	pushd ../chaincode/requirement/typescript
-	npm install
-	npm run build
-	popd
-	echo Finished compiling TypeScript code into JavaScript
+  echo Compiling TypeScript code into JavaScript ...
+  pushd ../chaincode/requirement/typescript
+  npm install
+  npm run build
+  popd
+  echo Finished compiling TypeScript code into JavaScript
 
 else
-	echo The chaincode language ${CC_SRC_LANGUAGE} is not supported by this script
-	echo Supported chaincode languages are: go, java, javascript, and typescript
-	exit 1
+  echo The chaincode language ${CC_SRC_LANGUAGE} is not supported by this script
+  echo Supported chaincode languages are: go, java, javascript, and typescript
+  exit 1
 fi
 
 # import utils
 . scripts/envVar.sh
-
 
 packageChaincode() {
   PEER=$1
@@ -99,7 +97,7 @@ queryInstalled() {
   res=$?
   set +x
   cat log.txt
-	PACKAGE_ID=$(sed -n "/requirement_${VERSION}/{s/^Package ID: //; s/, Label:.*$//; p;}" log.txt)
+  PACKAGE_ID=$(sed -n "/requirement_${VERSION}/{s/^Package ID: //; s/, Label:.*$//; p;}" log.txt)
   verifyResult $res "Query installed on peer${PEER}.org${ORG} has failed"
   echo PackageID is ${PACKAGE_ID}
   echo "===================== Query installed successful on peer${PEER}.org${ORG} on channel ===================== "
@@ -127,11 +125,11 @@ checkCommitReadiness() {
   shift 1
   setGlobals $PEER $ORG
   echo "===================== Checking the commit readiness of the chaincode definition on peer${PEER}.org${ORG} on channel '$CHANNEL_NAME'... ===================== "
-	local rc=1
-	local COUNTER=1
-	# continue to poll
+  local rc=1
+  local COUNTER=1
+  # continue to poll
   # we either get a successful response, or reach MAX RETRY
-	while [ $rc -ne 0 -a $COUNTER -lt $MAX_RETRY ] ; do
+  while [ $rc -ne 0 -a $COUNTER -lt $MAX_RETRY ]; do
     sleep $DELAY
     echo "Attempting to check the commit readiness of the chaincode definition on peer${PEER}.org${ORG} secs"
     set -x
@@ -139,12 +137,11 @@ checkCommitReadiness() {
     res=$?
     set +x
     let rc=0
-    for var in "$@"
-    do
+    for var in "$@"; do
       grep "$var" log.txt &>/dev/null || let rc=1
     done
-		COUNTER=$(expr $COUNTER + 1)
-	done
+    COUNTER=$(expr $COUNTER + 1)
+  done
   cat log.txt
   if test $rc -eq 0; then
     echo "===================== Checking the commit readiness of the chaincode definition successful on peer${PEER}.org${ORG} on channel '$CHANNEL_NAME' ===================== "
@@ -181,26 +178,26 @@ queryCommitted() {
   setGlobals $PEER $ORG
   EXPECTED_RESULT="Version: ${VERSION}, Sequence: ${VERSION}, Endorsement Plugin: escc, Validation Plugin: vscc"
   echo "===================== Querying chaincode definition on peer${PEER}.org${ORG} on channel '$CHANNEL_NAME'... ===================== "
-	local rc=1
-	local COUNTER=1
-	# continue to poll
+  local rc=1
+  local COUNTER=1
+  # continue to poll
   # we either get a successful response, or reach MAX RETRY
-	while [ $rc -ne 0 -a $COUNTER -lt $MAX_RETRY ] ; do
+  while [ $rc -ne 0 -a $COUNTER -lt $MAX_RETRY ]; do
     sleep $DELAY
     echo "Attempting to Query committed status on peer${PEER}.org${ORG}, Retry after $DELAY seconds."
     set -x
     peer lifecycle chaincode querycommitted --channelID $CHANNEL_NAME --name requirement >&log.txt
     res=$?
     set +x
-		test $res -eq 0 && VALUE=$(cat log.txt | grep -o '^Version: [0-9], Sequence: [0-9], Endorsement Plugin: escc, Validation Plugin: vscc')
+    test $res -eq 0 && VALUE=$(cat log.txt | grep -o '^Version: [0-9], Sequence: [0-9], Endorsement Plugin: escc, Validation Plugin: vscc')
     test "$VALUE" = "$EXPECTED_RESULT" && let rc=0
-		COUNTER=$(expr $COUNTER + 1)
-	done
+    COUNTER=$(expr $COUNTER + 1)
+  done
   echo
   cat log.txt
   if test $rc -eq 0; then
     echo "===================== Query chaincode definition successful on peer${PEER}.org${ORG} on channel '$CHANNEL_NAME' ===================== "
-		echo
+    echo
   else
     echo "!!!!!!!!!!!!!!! After $MAX_RETRY attempts, Query chaincode definition result on peer${PEER}.org${ORG} is INVALID !!!!!!!!!!!!!!!!"
     echo
@@ -229,28 +226,28 @@ chaincodeInvokeInit() {
 chaincodeQuery() {
   PEER=$1
   ORG=$2
+  ARGS=$3
   setGlobals $PEER $ORG
   echo "===================== Querying on peer${PEER}.org${ORG} on channel '$CHANNEL_NAME'... ===================== "
-	local rc=1
-	local COUNTER=1
-	# continue to poll
+  local rc=1
+  local COUNTER=1
+  # continue to poll
   # we either get a successful response, or reach MAX RETRY
-	while [ $rc -ne 0 -a $COUNTER -lt $MAX_RETRY ] ; do
+  while [ $rc -ne 0 -a $COUNTER -lt $MAX_RETRY ]; do
     sleep $DELAY
     echo "Attempting to Query peer${PEER}.org${ORG} ...$(($(date +%s) - starttime)) secs"
     set -x
-    # peer chaincode query -C $CHANNEL_NAME -n requirement -c '{"Args":["queryAllTraces"]}' >&log.txt
-    peer chaincode query -C $CHANNEL_NAME -n requirement -c '{"Args":["queryAllCars"]}' >&log.txt
+    peer chaincode query -C $CHANNEL_NAME -n requirement -c "{\"Args\":$ARGS}" >&log.txt
     res=$?
     set +x
-		let rc=$res
-		COUNTER=$(expr $COUNTER + 1)
-	done
+    let rc=$res
+    COUNTER=$(expr $COUNTER + 1)
+  done
   echo
   cat log.txt
   if test $rc -eq 0; then
     echo "===================== Query successful on peer${PEER}.org${ORG} on channel '$CHANNEL_NAME' ===================== "
-		echo
+    echo
   else
     echo "!!!!!!!!!!!!!!! After $MAX_RETRY attempts, Query result on peer${PEER}.org${ORG} is INVALID !!!!!!!!!!!!!!!!"
     echo
@@ -269,46 +266,13 @@ chaincodeInvoke() {
   # peer (if join was successful), let's supply it directly as we know
   # it using the "-o" option
   set -x
-  # peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.requirementnet.com --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n requirement $PEER_CONN_PARMS -c '{"function":"updateArtefact","Args":["TRACE0","Equipment Company","README.md","ab037cb6d11130d091375514545970c935e6cbbd","2020-10-25T21:34:55","UPDATE","test"]}' >&log.txt
-  peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.requirementnet.com --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n requirement $PEER_CONN_PARMS -c '{"function":"changeCarOwner","Args":["CAR9","Dave"]}' >&log.txt
+  peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.requirementnet.com --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n requirement $PEER_CONN_PARMS -c '{"function":"updateArtefact","Args":["TRACE0","Equipment Company","README.md","ab037cb6d11130d091375514545970c935e6cbbd","2020-10-25T21:34:55","UPDATE","test from EC"]}' >&log.txt
   res=$?
   set +x
   cat log.txt
   verifyResult $res "Invoke execution on $PEERS failed "
   echo "===================== Invoke transaction successful on $PEERS on channel '$CHANNEL_NAME' ===================== "
   echo
-}
-
-chaincodeQueryCustomize() {
-  PEER=$1
-  ORG=$2
-  setGlobals $PEER $ORG
-  echo "===================== Querying on peer${PEER}.org${ORG} on channel '$CHANNEL_NAME'... ===================== "
-	local rc=1
-	local COUNTER=1
-	# continue to poll
-  # we either get a successful response, or reach MAX RETRY
-	while [ $rc -ne 0 -a $COUNTER -lt $MAX_RETRY ] ; do
-    sleep $DELAY
-    echo "Attempting to Query peer${PEER}.org${ORG} ...$(($(date +%s) - starttime)) secs"
-    set -x
-    # peer chaincode query -C $CHANNEL_NAME -n requirement -c '{"Args":["queryTrace","TRACE0"]}' >&log.txt
-    peer chaincode query -C $CHANNEL_NAME -n requirement -c '{"Args":["queryCar","CAR9"]}' >&log.txt
-    res=$?
-    set +x
-		let rc=$res
-		COUNTER=$(expr $COUNTER + 1)
-	done
-  echo
-  cat log.txt
-  if test $rc -eq 0; then
-    echo "===================== Query successful on peer${PEER}.org${ORG} on channel '$CHANNEL_NAME' ===================== "
-		echo
-  else
-    echo "!!!!!!!!!!!!!!! After $MAX_RETRY attempts, Query result on peer${PEER}.org${ORG} is INVALID !!!!!!!!!!!!!!!!"
-    echo
-    exit 1
-  fi
 }
 
 ## at first we package the chaincode on peer0.org1
@@ -375,7 +339,7 @@ sleep 50
 
 # Query chaincode on peer0.org1
 echo "Querying chaincode on peer0.org1..."
-chaincodeQuery 0 1
+chaincodeQuery 0 1 "[\"queryAllTraces\"]"
 
 # Invoke chaincode on all peer0
 echo "Sending invoke transaction on all peer0..."
@@ -383,7 +347,7 @@ chaincodeInvoke 0 1 0 2 0 3 0 4 0 5
 
 # Query chaincode on peer0.org2
 echo "Querying chaincode on peer0.org2..."
-chaincodeQueryCustomize 0 2
+chaincodeQuery 0 2 "[\"queryTrace\",\"TRACE0\"]"
 
 ## Install chaincode on peer1.org2
 echo "Installing chaincode on peer1.org2..."
@@ -391,6 +355,6 @@ installChaincode 1 2
 
 # Query on chaincode on peer1.org2, check if the result has been updated
 echo "Querying chaincode on peer1.org2..."
-chaincodeQuery 1 2
+chaincodeQuery 1 2 "[\"queryAllTraces\"]"
 
 exit 0
