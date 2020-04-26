@@ -24,7 +24,7 @@ function printHelp() {
   echo "      - 'up' - bring up fabric orderer and peer nodes. No channel is created"
   echo "      - 'up createChannel' - bring up fabric network with one channel"
   echo "      - 'createChannel' - create and join a channel after the network is created"
-  echo "      - 'deployCC' - deploy the fabcar chaincode on the channel"
+  echo "      - 'deployCC' - deploy the requirement chaincode on the channel"
   echo "      - 'down' - clear the network with docker-compose down"
   echo "      - 'restart' - restart the network"
   echo
@@ -465,7 +465,7 @@ function networkDown() {
 
 
     # remove channel and script artifacts
-    rm -rf channel-artifacts log.txt fabcar.tar.gz fabcar
+    rm -rf channel-artifacts log.txt requirement.tar.gz requirement
 
   fi
 }
