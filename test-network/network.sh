@@ -493,8 +493,8 @@ COMPOSE_FILE_COUCH_ORG3=addOrg3/docker/docker-compose-couch-org3.yaml
 # use this as the default docker-compose yaml definition for org3
 COMPOSE_FILE_ORG3=addOrg3/docker/docker-compose-org3.yaml
 #
-# use java as the default language for chaincode
-CC_SRC_LANGUAGE=java
+# use golang as the default language for chaincode
+CC_SRC_LANGUAGE=golang
 # Chaincode version
 VERSION=1
 # default image tag

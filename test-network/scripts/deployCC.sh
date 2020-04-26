@@ -6,7 +6,7 @@ DELAY="$4"
 MAX_RETRY="$5"
 VERBOSE="$6"
 : ${CHANNEL_NAME:="mychannel"}
-: ${CC_SRC_LANGUAGE:="java"}
+: ${CC_SRC_LANGUAGE:="golang"}
 : ${VERSION:="1"}
 : ${DELAY:="3"}
 : ${MAX_RETRY:="5"}
@@ -239,7 +239,8 @@ chaincodeQuery() {
     sleep $DELAY
     echo "Attempting to Query peer${PEER}.org${ORG} ...$(($(date +%s) - starttime)) secs"
     set -x
-    peer chaincode query -C $CHANNEL_NAME -n requirement -c '{"Args":["queryAllTraces"]}' >&log.txt
+    # peer chaincode query -C $CHANNEL_NAME -n requirement -c '{"Args":["queryAllTraces"]}' >&log.txt
+    peer chaincode query -C $CHANNEL_NAME -n requirement -c '{"Args":["queryAllCars"]}' >&log.txt
     res=$?
     set +x
 		let rc=$res
@@ -268,7 +269,8 @@ chaincodeInvoke() {
   # peer (if join was successful), let's supply it directly as we know
   # it using the "-o" option
   set -x
-  peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.requirementnet.com --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n requirement $PEER_CONN_PARMS -c '{"function":"updateArtefact","Args":["TRACE0","Equipment Company","README.md","ab037cb6d11130d091375514545970c935e6cbbd","2020-10-25T21:34:55","UPDATE","test"]}' >&log.txt
+  # peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.requirementnet.com --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n requirement $PEER_CONN_PARMS -c '{"function":"updateArtefact","Args":["TRACE0","Equipment Company","README.md","ab037cb6d11130d091375514545970c935e6cbbd","2020-10-25T21:34:55","UPDATE","test"]}' >&log.txt
+  peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.requirementnet.com --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n requirement $PEER_CONN_PARMS -c '{"function":"changeCarOwner","Args":["CAR9","Dave"]}' >&log.txt
   res=$?
   set +x
   cat log.txt
@@ -290,7 +292,8 @@ chaincodeQueryCustomize() {
     sleep $DELAY
     echo "Attempting to Query peer${PEER}.org${ORG} ...$(($(date +%s) - starttime)) secs"
     set -x
-    peer chaincode query -C $CHANNEL_NAME -n requirement -c '{"Args":["queryTrace","TRACE0"]}' >&log.txt
+    # peer chaincode query -C $CHANNEL_NAME -n requirement -c '{"Args":["queryTrace","TRACE0"]}' >&log.txt
+    peer chaincode query -C $CHANNEL_NAME -n requirement -c '{"Args":["queryCar","CAR9"]}' >&log.txt
     res=$?
     set +x
 		let rc=$res
