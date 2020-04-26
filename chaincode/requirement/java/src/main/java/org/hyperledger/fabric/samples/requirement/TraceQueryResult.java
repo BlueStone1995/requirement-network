@@ -1,4 +1,4 @@
-package org.hyperledger.fabric.samples.fabcar;
+package org.hyperledger.fabric.samples.requirement;
 
 import com.owlike.genson.annotation.JsonProperty;
 import org.hyperledger.fabric.contract.annotation.DataType;

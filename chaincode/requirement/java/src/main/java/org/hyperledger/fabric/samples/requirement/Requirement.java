@@ -1,4 +1,4 @@
-package org.hyperledger.fabric.samples.fabcar;
+package org.hyperledger.fabric.samples.requirement;
 
 import com.owlike.genson.Genson;
 import org.hyperledger.fabric.contract.Context;
@@ -72,7 +72,7 @@ public final class Requirement implements ContractInterface {
         ChaincodeStub stub = ctx.getStub();
 
         // TODO: initialise new private repository on Github with
-        String readMe = "{ \"issuer\": \"Toyota\", \"artefact\": \"README.md\", \"hash\": \"test\", \"date\": \"test\", \"state\": \"ISSUED\", \"message\": \"first commit\" }";
+        String readMe = "{ \"issuer\": \"Standard Company\", \"artefact\": \"README.md\", \"hash\": \"c3253074a4c2601e133932efbe9e03f9bb4418d8\", \"date\": \"2020-01-25T21:34:55\", \"state\": \"ISSUED\", \"message\": \"first commit\" }";
 
         String key = String.format("TRACE0");
 

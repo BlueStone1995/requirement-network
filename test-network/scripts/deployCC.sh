@@ -239,7 +239,7 @@ chaincodeQuery() {
     sleep $DELAY
     echo "Attempting to Query peer${PEER}.org${ORG} ...$(($(date +%s) - starttime)) secs"
     set -x
-    peer chaincode query -C $CHANNEL_NAME -n requirement -c '{"Args":["queryAllCars"]}' >&log.txt
+    peer chaincode query -C $CHANNEL_NAME -n requirement -c '{"Args":["queryAllTraces"]}' >&log.txt
     res=$?
     set +x
 		let rc=$res
@@ -268,7 +268,7 @@ chaincodeInvoke() {
   # peer (if join was successful), let's supply it directly as we know
   # it using the "-o" option
   set -x
-  peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.requirementnet.com --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n requirement $PEER_CONN_PARMS -c '{"function":"changeCarOwner","Args":["CAR009","Dave"]}' >&log.txt
+  peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.requirementnet.com --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n requirement $PEER_CONN_PARMS -c '{"function":"updateArtefact","Args":["TRACE0","Equipment Company","README.md","ab037cb6d11130d091375514545970c935e6cbbd","2020-10-25T21:34:55","UPDATE","test"]}' >&log.txt
   res=$?
   set +x
   cat log.txt
@@ -290,7 +290,7 @@ chaincodeQueryCustomize() {
     sleep $DELAY
     echo "Attempting to Query peer${PEER}.org${ORG} ...$(($(date +%s) - starttime)) secs"
     set -x
-    peer chaincode query -C $CHANNEL_NAME -n requirement -c '{"Args":["queryCar","CAR009"]}' >&log.txt
+    peer chaincode query -C $CHANNEL_NAME -n requirement -c '{"Args":["queryTrace","TRACE0"]}' >&log.txt
     res=$?
     set +x
 		let rc=$res
@@ -386,7 +386,7 @@ chaincodeQueryCustomize 0 2
 echo "Installing chaincode on peer1.org2..."
 installChaincode 1 2
 
-# Query on chaincode on peer1.org2, check if the result will show that "CAR9" was transferred to Dave
+# Query on chaincode on peer1.org2, check if the result has been updated
 echo "Querying chaincode on peer1.org2..."
 chaincodeQuery 1 2
 
