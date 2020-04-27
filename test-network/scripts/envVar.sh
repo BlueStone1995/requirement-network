@@ -12,7 +12,6 @@ export PEER0_ORG1_CA=${PWD}/organizations/peerOrganizations/org1.requirementnet.
 export PEER0_ORG2_CA=${PWD}/organizations/peerOrganizations/org2.requirementnet.com/peers/peer0.org2.requirementnet.com/tls/ca.crt
 export PEER0_ORG3_CA=${PWD}/organizations/peerOrganizations/org3.requirementnet.com/peers/peer0.org3.requirementnet.com/tls/ca.crt
 export PEER0_ORG4_CA=${PWD}/organizations/peerOrganizations/org4.requirementnet.com/peers/peer0.org4.requirementnet.com/tls/ca.crt
-export PEER0_ORG5_CA=${PWD}/organizations/peerOrganizations/org5.requirementnet.com/peers/peer0.org5.requirementnet.com/tls/ca.crt
 
 # Set OrdererOrg.Admin globals
 setOrdererGlobals() {
@@ -80,19 +79,6 @@ setGlobals() {
       export CORE_PEER_ADDRESS=localhost:4050
     elif [ $USING_PEER -eq 1 ]; then
       export CORE_PEER_ADDRESS=localhost:4051
-    else
-      echo "================== ERROR !!! PEER Unknown =================="
-    fi
-
-  elif [ $USING_ORG -eq 5 ]; then
-    export CORE_PEER_LOCALMSPID="Org5MSP"
-    export CORE_PEER_TLS_ROOTCERT_FILE=$PEER0_ORG5_CA
-    export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org5.requirementnet.com/users/Admin@org5.requirementnet.com/msp
-
-    if [ $USING_PEER -eq 0 ]; then
-      export CORE_PEER_ADDRESS=localhost:5050
-    elif [ $USING_PEER -eq 1 ]; then
-      export CORE_PEER_ADDRESS=localhost:5051
     else
       echo "================== ERROR !!! PEER Unknown =================="
     fi

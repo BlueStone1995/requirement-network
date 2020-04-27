@@ -67,13 +67,3 @@ CAPEM=organizations/peerOrganizations/org4.requirementnet.com/ca/ca.org4.require
 
 echo "$(json_ccp $ORG $P0PORT $P1PORT $CAPORT $PEERPEM $CAPEM)" > organizations/peerOrganizations/org4.requirementnet.com/connection-org4.json
 echo "$(yaml_ccp $ORG $P0PORT $P1PORT $CAPORT $PEERPEM $CAPEM)" > organizations/peerOrganizations/org4.requirementnet.com/connection-org4.yaml
-
-ORG=5
-P0PORT=5050
-P1PORT=5051
-CAPORT=5055
-PEERPEM=organizations/peerOrganizations/org5.requirementnet.com/tlsca/tlsca.org5.requirementnet.com-cert.pem
-CAPEM=organizations/peerOrganizations/org5.requirementnet.com/ca/ca.org5.requirementnet.com-cert.pem
-
-echo "$(json_ccp $ORG $P0PORT $P1PORT $CAPORT $PEERPEM $CAPEM)" > organizations/peerOrganizations/org5.requirementnet.com/connection-org5.json
-echo "$(yaml_ccp $ORG $P0PORT $P1PORT $CAPORT $PEERPEM $CAPEM)" > organizations/peerOrganizations/org5.requirementnet.com/connection-org5.yaml

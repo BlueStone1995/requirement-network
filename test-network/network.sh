@@ -172,8 +172,7 @@ function createOrgs() {
     echo
 
     echo "#################################################################################"
-    # echo "############ Create Org1 Identities ######################"
-    echo "############ Create Org1 Identities: Standard Company (SC) ######################"
+    echo "############ Create Org1 Identities: System Company (SCis) ######################"
     echo "#################################################################################"
 
     set -x
@@ -186,8 +185,7 @@ function createOrgs() {
     fi
 
     echo "#################################################################################"
-    # echo "############ Create Org2 Identities ######################"
-    echo "############ Create Org2 Identities: System Company (SCis) ######################"
+    echo "############ Create Org2 Identities: Equipment Company (EC) #####################"
     echo "#################################################################################"
 
     set -x
@@ -200,7 +198,7 @@ function createOrgs() {
     fi
 
     echo "##################################################################################"
-    echo "############ Create Org3 Identities: Equipment Company (EC) ######################"
+    echo "############ Create Org3 Identities: Interface Company (IC) ######################"
     echo "##################################################################################"
 
     set -x
@@ -212,9 +210,9 @@ function createOrgs() {
       exit 1
     fi
 
-    echo "##################################################################################"
-    echo "############ Create Org4 Identities: Interface Company (IC) ######################"
-    echo "##################################################################################"
+    echo "#################################################################################"
+    echo "############ Create Org4 Identities: System Structure Company (SSC) #############"
+    echo "#################################################################################"
 
     set -x
     cryptogen generate --config=./organizations/cryptogen/crypto-config-org4.yaml --output="organizations"
@@ -225,22 +223,9 @@ function createOrgs() {
       exit 1
     fi
 
-    echo "##########################################################################################"
-    echo "############ Create Org5 Identities: System Structure Company (SSC) ######################"
-    echo "##########################################################################################"
-
-    set -x
-    cryptogen generate --config=./organizations/cryptogen/crypto-config-org5.yaml --output="organizations"
-    res=$?
-    set +x
-    if [ $res -ne 0 ]; then
-      echo "Failed to generate certificates..."
-      exit 1
-    fi
-
-    echo "##########################################################"
-    echo "############ Create Orderer Org Identities ###############"
-    echo "##########################################################"
+    echo "#################################################################################"
+    echo "############ Create Orderer Org Identities: Standard Company (SC) ###############"
+    echo "#################################################################################"
 
     set -x
     cryptogen generate --config=./organizations/cryptogen/crypto-config-orderer.yaml --output="organizations"
@@ -306,12 +291,6 @@ function createOrgs() {
     createOrg4
 
     echo "##########################################################"
-    echo "############ Create Org5 Identities ######################"
-    echo "##########################################################"
-
-    createOrg5
-
-    echo "##########################################################"
     echo "############ Create Orderer Org Identities ###############"
     echo "##########################################################"
 
@@ -320,7 +299,7 @@ function createOrgs() {
   fi
 
   echo
-  echo "Generate CCP files for Org1, Org2, Org3, Org4 and Org5"
+  echo "Generate CCP files for Org1, Org2, Org3 and Org4"
   ./organizations/ccp-generate.sh
 }
 
@@ -364,7 +343,7 @@ function createConsortium() {
   # Note: For some unknown reason (at least for now) the block file can't be
   # named orderer.genesis.block or the orderer will fail to launch!
   set -x
-  configtxgen -profile FiveOrgsOrdererGenesis -channelID system-channel -outputBlock ./system-genesis-block/genesis.block
+  configtxgen -profile FourOrgsOrdererGenesis -channelID system-channel -outputBlock ./system-genesis-block/genesis.block
   res=$?
   set +x
   if [ $res -ne 0 ]; then
@@ -459,7 +438,6 @@ function networkDown() {
     rm -rf organizations/fabric-ca/org2/msp organizations/fabric-ca/org2/tls-cert.pem organizations/fabric-ca/org2/ca-cert.pem organizations/fabric-ca/org2/IssuerPublicKey organizations/fabric-ca/org2/IssuerRevocationPublicKey organizations/fabric-ca/org2/fabric-ca-server.db
     rm -rf organizations/fabric-ca/org3/msp organizations/fabric-ca/org3/tls-cert.pem organizations/fabric-ca/org3/ca-cert.pem organizations/fabric-ca/org3/IssuerPublicKey organizations/fabric-ca/org3/IssuerRevocationPublicKey organizations/fabric-ca/org3/fabric-ca-server.db
     rm -rf organizations/fabric-ca/org4/msp organizations/fabric-ca/org4/tls-cert.pem organizations/fabric-ca/org4/ca-cert.pem organizations/fabric-ca/org4/IssuerPublicKey organizations/fabric-ca/org4/IssuerRevocationPublicKey organizations/fabric-ca/org4/fabric-ca-server.db
-    rm -rf organizations/fabric-ca/org5/msp organizations/fabric-ca/org5/tls-cert.pem organizations/fabric-ca/org5/ca-cert.pem organizations/fabric-ca/org5/IssuerPublicKey organizations/fabric-ca/org5/IssuerRevocationPublicKey organizations/fabric-ca/org5/fabric-ca-server.db
     rm -rf organizations/fabric-ca/ordererOrg/msp organizations/fabric-ca/ordererOrg/tls-cert.pem organizations/fabric-ca/ordererOrg/ca-cert.pem organizations/fabric-ca/ordererOrg/IssuerPublicKey organizations/fabric-ca/ordererOrg/IssuerRevocationPublicKey organizations/fabric-ca/ordererOrg/fabric-ca-server.db
     rm -rf addOrg3/fabric-ca/org3/msp addOrg3/fabric-ca/org3/tls-cert.pem addOrg3/fabric-ca/org3/ca-cert.pem addOrg3/fabric-ca/org3/IssuerPublicKey addOrg3/fabric-ca/org3/IssuerRevocationPublicKey addOrg3/fabric-ca/org3/fabric-ca-server.db
 
