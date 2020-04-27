@@ -20,7 +20,7 @@ fi
 createChannelTx() {
 
 	set -x
-	configtxgen -profile FiveOrgsChannel -outputCreateChannelTx ./channel-artifacts/${CHANNEL_NAME}.tx -channelID $CHANNEL_NAME
+	configtxgen -profile FourOrgsChannel -outputCreateChannelTx ./channel-artifacts/${CHANNEL_NAME}.tx -channelID $CHANNEL_NAME
 	res=$?
 	set +x
 	if [ $res -ne 0 ]; then
@@ -33,11 +33,11 @@ createChannelTx() {
 
 createAncorPeerTx() {
 
-	for orgmsp in Org1MSP Org2MSP Org3MSP Org4MSP Org5MSP; do
+	for orgmsp in Org1MSP Org2MSP Org3MSP Org4MSP; do
 
 	echo "#######    Generating anchor peer update for ${orgmsp}  ##########"
 	set -x
-	configtxgen -profile FiveOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/${orgmsp}anchors.tx -channelID $CHANNEL_NAME -asOrg ${orgmsp}
+	configtxgen -profile FourOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/${orgmsp}anchors.tx -channelID $CHANNEL_NAME -asOrg ${orgmsp}
 	res=$?
 	set +x
 	if [ $res -ne 0 ]; then
@@ -151,9 +151,6 @@ joinChannel 1 3
 echo "Join Org4 peers to the channel..."
 joinChannel 0 4
 joinChannel 1 4
-echo "Join Org5 peers to the channel..."
-joinChannel 0 5
-joinChannel 1 5
 
 ## Set the anchor peers for each org in the channel
 echo "Updating anchor peers for org1..."
@@ -164,8 +161,6 @@ echo "Updating anchor peers for org3..."
 updateAnchorPeers 0 3
 echo "Updating anchor peers for org4..."
 updateAnchorPeers 0 4
-echo "Updating anchor peers for org5..."
-updateAnchorPeers 0 5
 
 echo
 echo "========= Channel successfully joined =========== "

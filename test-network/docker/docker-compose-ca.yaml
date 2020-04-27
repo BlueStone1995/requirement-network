@@ -78,23 +78,6 @@ services:
     networks:
       - test
 
-  ca_org5:
-    image: hyperledger/fabric-ca:$IMAGE_TAG
-    dns_search: .
-    environment:
-      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
-      - FABRIC_CA_SERVER_CA_NAME=ca-org5
-      - FABRIC_CA_SERVER_TLS_ENABLED=true
-      - FABRIC_CA_SERVER_PORT=5055
-    ports:
-      - "5055:5055"
-    command: sh -c 'fabric-ca-server start -b admin:adminpw -d'
-    volumes:
-      - ../organizations/fabric-ca/org5:/etc/hyperledger/fabric-ca-server
-    container_name: ca_org5
-    networks:
-      - test
-
   ca_orderer:
     image: hyperledger/fabric-ca:$IMAGE_TAG
     dns_search: .
