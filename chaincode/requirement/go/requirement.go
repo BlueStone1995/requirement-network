@@ -22,8 +22,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"strconv"
+	"time"
 
+	"github.com/go-git/go-git/v5"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
 
@@ -34,12 +37,12 @@ type SmartContract struct {
 
 // Trace describes basic details of what makes up a trace
 type Trace struct {
-	Issuer   string `json:"issuer"`
-	Artefact string `json:"artefact"`
-	Hash     string `json:"hash"`
-	Date     string `json:"date"`
-	State    string `json:"state"`
-	Message  string `json:"message"`
+	Issuer   string    `json:"issuer"`
+	Artefact string    `json:"artefact"`
+	Hash     string    `json:"hash"`
+	Date     time.Time `json:"date"`
+	State    string    `json:"state"`
+	Message  string    `json:"message"`
 }
 
 // QueryResult structure used for handling result of query
@@ -51,9 +54,20 @@ type QueryResult struct {
 // InitLedger adds a base set of traces to the ledger
 func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) error {
 	traces := []Trace{
-		{Issuer: "Standard Company", Artefact: "README.md", Hash: "c3253074a4c2601e133932efbe9e03f9bb4418d8", Date: "2020-01-25T21:34:55", State: "ISSUED", Message: "first commit"},
-		{Issuer: "System Company", Artefact: "Documentation.pdf", Hash: "c3253074a4c2601e133932efbe9e03f9bb4418d9", Date: "2020-01-25T21:34:55", State: "ISSUED", Message: "first commit"},
+		{Issuer: "Standard Company", Artefact: "README.md", Hash: "c3253074a4c2601e133932efbe9e03f9bb4418d8", Date: time.Now(), State: "ISSUED", Message: "first commit"},
+		{Issuer: "System Company", Artefact: "Documentation.pdf", Hash: "c3253074a4c2601e133932efbe9e03f9bb4418d9", Date: time.Now(), State: "ISSUED", Message: "first commit"},
 	}
+
+	// Init GitHub repository
+	// Clone the given repository to the given directory
+	fmt.Printf("git clone https://github.com/BlueStone1995/requirement-test.git")
+
+	_, err := git.PlainClone("/tmp/foo", false, &git.CloneOptions{
+		URL:      "https://github.com/BlueStone1995/requirement-test.git",
+		Progress: os.Stdout,
+	})
+
+	CheckIfError(err)
 
 	for i, trace := range traces {
 		traceAsBytes, _ := json.Marshal(trace)
@@ -68,7 +82,7 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 }
 
 // CreateTrace adds a new trace to the world state with given details
-func (s *SmartContract) CreateTrace(ctx contractapi.TransactionContextInterface, traceNumber string, issuer string, artefact string, hash string, date string, state string, message string) error {
+func (s *SmartContract) CreateTrace(ctx contractapi.TransactionContextInterface, traceNumber string, issuer string, artefact string, hash string, date time.Time, state string, message string) error {
 	trace := Trace{
 		Issuer:   issuer,
 		Artefact: artefact,
@@ -77,6 +91,27 @@ func (s *SmartContract) CreateTrace(ctx contractapi.TransactionContextInterface,
 		State:    state,
 		Message:  message,
 	}
+
+	traceAsBytes, _ := json.Marshal(trace)
+
+	return ctx.GetStub().PutState(traceNumber, traceAsBytes)
+}
+
+// UpdateArtefact updates the fields of trace with given id in world state
+func (s *SmartContract) UpdateArtefact(ctx contractapi.TransactionContextInterface, traceNumber string, issuer string, artefact string,
+	hash string, date time.Time, state string, message string) error {
+	trace, err := s.QueryTrace(ctx, traceNumber)
+
+	if err != nil {
+		return err
+	}
+
+	trace.Issuer = issuer
+	trace.Artefact = artefact
+	trace.Hash = hash
+	trace.Date = date
+	trace.State = state
+	trace.Message = message
 
 	traceAsBytes, _ := json.Marshal(trace)
 
@@ -97,6 +132,8 @@ func (s *SmartContract) QueryTrace(ctx contractapi.TransactionContextInterface, 
 
 	trace := new(Trace)
 	_ = json.Unmarshal(traceAsBytes, trace)
+
+	commitToRequirement()
 
 	return trace, nil
 }
@@ -130,39 +167,4 @@ func (s *SmartContract) QueryAllTraces(ctx contractapi.TransactionContextInterfa
 	}
 
 	return results, nil
-}
-
-// UpdateArtefact updates the fields of trace with given id in world state
-func (s *SmartContract) UpdateArtefact(ctx contractapi.TransactionContextInterface, traceNumber string, issuer string, artefact string,
-	hash string, date string, state string, message string) error {
-	trace, err := s.QueryTrace(ctx, traceNumber)
-
-	if err != nil {
-		return err
-	}
-
-	trace.Issuer = issuer
-	trace.Artefact = artefact
-	trace.Hash = hash
-	trace.Date = date
-	trace.State = state
-	trace.Message = message
-
-	traceAsBytes, _ := json.Marshal(trace)
-
-	return ctx.GetStub().PutState(traceNumber, traceAsBytes)
-}
-
-func main() {
-
-	chaincode, err := contractapi.NewChaincode(new(SmartContract))
-
-	if err != nil {
-		fmt.Printf("Error create requirement chaincode: %s", err.Error())
-		return
-	}
-
-	if err := chaincode.Start(); err != nil {
-		fmt.Printf("Error starting requirement chaincode: %s", err.Error())
-	}
 }

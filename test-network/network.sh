@@ -418,6 +418,19 @@ function deployCC() {
   exit 0
 }
 
+## Call the script to isntall and instantiate a chaincode on the channel
+function invokeCC() {
+
+  scripts/invokeCC.sh $CHANNEL_NAME $CC_SRC_LANGUAGE $VERSION $CLI_DELAY $MAX_RETRY $VERBOSE
+
+  if [ $? -ne 0 ]; then
+    echo "ERROR !!! Invoking chaincode failed"
+    exit 1
+  fi
+
+  exit 0
+}
+
 
 # Tear down running network
 function networkDown() {
@@ -580,6 +593,9 @@ elif [ "$MODE" == "restart" ]; then
 elif [ "$MODE" == "deployCC" ]; then
   echo "deploying chaincode on channel '${CHANNEL_NAME}'"
   echo
+elif [ "$MODE" == "invokeCC" ]; then
+  echo "invoke chaincode on channel '${CHANNEL_NAME}'"
+  echo
 else
   printHelp
   exit 1
@@ -591,6 +607,8 @@ elif [ "${MODE}" == "createChannel" ]; then
   createChannel
 elif [ "${MODE}" == "deployCC" ]; then
   deployCC
+elif [ "${MODE}" == "invokeCC" ]; then
+  invokeCC
 elif [ "${MODE}" == "down" ]; then
   networkDown
 elif [ "${MODE}" == "restart" ]; then
