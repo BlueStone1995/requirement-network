@@ -12,7 +12,7 @@ import (
 )
 
 func commitToRequirement() {
-	CheckArgs("./tmp/foo/")
+	CheckArgs("./tmp/requirement-test")
 	directory := os.Args[1]
 
 	// Opens an already existing repository.

@@ -62,7 +62,7 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 	// Clone the given repository to the given directory
 	fmt.Printf("git clone https://github.com/BlueStone1995/requirement-test.git")
 
-	_, err := git.PlainClone("/tmp/foo", false, &git.CloneOptions{
+	_, err := git.PlainClone("/tmp/requirement-test", false, &git.CloneOptions{
 		URL:      "https://github.com/BlueStone1995/requirement-test.git",
 		Progress: os.Stdout,
 	})
