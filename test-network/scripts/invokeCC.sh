@@ -75,7 +75,7 @@ chaincodeInvokeUpdate() {
   # peer (if join was successful), let's supply it directly as we know
   # it using the "-o" option
   set -x
-  peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.requirementnet.com --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n requirement $PEER_CONN_PARMS -c '{"function":"updateArtefact","Args":["TRACE0","Equipment Company","README.md","ab037cb6d11130d091375514545970c935e6cbbd","2020-05-03T14:45:07.641700122Z","CLOSED","test from EC"]}' >&log.txt
+  peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.requirementnet.com --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n requirement $PEER_CONN_PARMS -c '{"function":"updateArtefact","Args":["TRACE0","Equipment Company","README.md","ab037cb6d11130d091375514545970c935e6cbbd","2020-05-03T14:45:07.641700122Z","CLOSED","3.0.0","test from EC"]}' >&log.txt
   res=$?
   set +x
   cat log.txt
@@ -93,7 +93,7 @@ chaincodeInvokeCreate() {
   # peer (if join was successful), let's supply it directly as we know
   # it using the "-o" option
   set -x
-  peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.requirementnet.com --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n requirement $PEER_CONN_PARMS -c '{"function":"CreateTrace","Args":["TRACE2","Equipment Company","test.txt","ab037cb6d11130d091375514545970c935e6cbbd","2020-05-03T14:45:07.641700122Z","ISSUED","test from EC"]}' >&log.txt
+  peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.requirementnet.com --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n requirement $PEER_CONN_PARMS -c '{"function":"CreateTrace","Args":["TRACE2","Equipment Company","test.txt","ab037cb6d11130d091375514545970c935e6cbbd","2020-05-03T14:45:07.641700122Z","ISSUED","1.0.0","test from EC"]}' >&log.txt
   res=$?
   set +x
   cat log.txt
@@ -101,7 +101,6 @@ chaincodeInvokeCreate() {
   echo "===================== Invoke transaction successful on $PEERS on channel '$CHANNEL_NAME' ===================== "
   echo
 }
-
 
 # Query chaincode on peer0.org1
 echo "Querying chaincode on peer0.org1..."
