@@ -54,8 +54,8 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 	date := time.Unix(timestamp.Seconds, int64(timestamp.Nanos))
 
 	traces := []Trace{
-		{Issuer: "Standard Company", Artefact: "README.md", Hash: "c3253074a4c2601e133932efbe9e03f9bb4418d8", Date: date, State: "ISSUED", Version: "1.0.0", Message: "first commit"},
-		{Issuer: "System Company", Artefact: "Documentation.pdf", Hash: "c3253074a4c2601e133932efbe9e03f9bb4418d9", Date: date, State: "ISSUED", Version: "1.0.0", Message: "first commit"},
+		{Issuer: "Standard Company", Artefact: "README.md", Hash: "00e3539a4cb62e11acce8f980476f524417b56a3", Date: date, State: "ISSUED", Version: "1.0.0", Message: "first commit"},
+		{Issuer: "System Company", Artefact: "artefact-test.txt", Hash: "13e55a9d82078c4afc3e3cda2ca81319ec942e2b", Date: date, State: "ISSUED", Version: "1.0.0", Message: "first commit"},
 	}
 
 	CloneRepo()
@@ -73,44 +73,67 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 }
 
 // CreateTrace adds a new trace to the world state with given details
-func (s *SmartContract) IssueArtefact(ctx contractapi.TransactionContextInterface, traceNumber string, issuer string, artefact string, hash string, date time.Time, state string, version string, message string) error {
+func (s *SmartContract) IssueArtefact(ctx contractapi.TransactionContextInterface, traceNumber string, issuer string, artefact string, message string) error {
+	timestamp, _ := ctx.GetStub().GetTxTimestamp()
+	date := time.Unix(timestamp.Seconds, int64(timestamp.Nanos))
+
 	trace := Trace{
 		Issuer:   issuer,
 		Artefact: artefact,
-		Hash:     hash,
+		Hash:     "",
 		Date:     date,
-		State:    state,
-		Version:  version,
+		State:    "ISSUED",
+		Version:  "1.0.0",
 		Message:  message,
 	}
 
+	// Commit and push new artefact
+	/**
+	obj, err := CommitToRepo(true, trace, date)
+
+	if err != nil {
+		return err
+	}
+	PushToRepo()
+
+	trace.Hash = obj.Hash.String()
+	*/
 	traceAsBytes, _ := json.Marshal(trace)
 
 	return ctx.GetStub().PutState(traceNumber, traceAsBytes)
 }
 
 // UpdateArtefact updates the fields of trace with given id in world state
-func (s *SmartContract) UpdateArtefact(ctx contractapi.TransactionContextInterface, traceNumber string, issuer string, artefact string,
-	hash string, date time.Time, state string, version string, message string) error {
+func (s *SmartContract) UpdateArtefact(ctx contractapi.TransactionContextInterface, traceNumber string, issuer string,
+	version string, message string) error {
 	trace, err := s.QueryTrace(ctx, traceNumber)
 
 	if err != nil {
 		return err
 	}
 
+	timestamp, _ := ctx.GetStub().GetTxTimestamp()
+	date := time.Unix(timestamp.Seconds, int64(timestamp.Nanos))
+
 	trace.Issuer = issuer
-	trace.Artefact = artefact
-	trace.Hash = hash
-	trace.Date = date
-	trace.State = state
+	trace.State = "UPDATED"
 	trace.Version = version
 	trace.Message = message
+	trace.Date = date
+
+	// Commit and push new artefact
+	/**
+	obj, errCommit := CommitToRepo(false, trace, date)
+
+	if errCommit != nil {
+		return errCommit
+	}
+	PushToRepo()
+
+	trace.Hash = obj.Hash.String()
+	*/
 
 	traceAsBytes, _ := json.Marshal(trace)
-
-	// Interact with git repository
-	CommitToRepo()
-	PushToRepo()
 
 	return ctx.GetStub().PutState(traceNumber, traceAsBytes)
 }
@@ -189,7 +212,7 @@ func CloneRepo() {
 	fmt.Println(commit)
 }
 
-func CommitToRepo() {
+func CommitToRepo(add bool, trace *Trace, date time.Time) (*object.Commit, error) {
 
 	// Opens an already existing repository.
 	r, err := git.PlainOpen("/tmp/requirement-test")
@@ -198,17 +221,18 @@ func CommitToRepo() {
 	w, err := r.Worktree()
 	CheckIfError(err)
 
-	// ... we need a file to commit so let's create a new file inside of the
 	// worktree of the project using the go standard library.
-	Info("echo \"hello world from Interface Company!\" > example-test-file")
-	filename := filepath.Join("/tmp/requirement-test", "example-test-file")
-	err = ioutil.WriteFile(filename, []byte("hello world!"), 0644)
+	Info("echo \"Commit operation on artefact\" > " + trace.Artefact)
+	filename := filepath.Join("/tmp/requirement-test", trace.Artefact)
+	err = ioutil.WriteFile(filename, []byte(trace.Message), 0644)
 	CheckIfError(err)
 
-	// Adds the new file to the staging area.
-	Info("git add example-test-file")
-	_, err = w.Add("example-test-file")
-	CheckIfError(err)
+	if add {
+		// Adds the new file to the staging area.
+		Info("git add " + trace.Artefact)
+		_, err = w.Add(trace.Artefact)
+		CheckIfError(err)
+	}
 
 	// We can verify the current status of the worktree using the method Status.
 	Info("git status --porcelain")
@@ -220,12 +244,13 @@ func CommitToRepo() {
 	// Commits the current staging area to the repository, with the new file
 	// just created. We should provide the object.Signature of Author of the
 	// commit.
-	Info("git commit -m \"example go-git commit\"")
-	commit, err := w.Commit("example go-git commit", &git.CommitOptions{
+	Info("git commit -m " + trace.Artefact)
+	commit, err := w.Commit(trace.Artefact+" go-git commit", &git.CommitOptions{
+		All: true,
 		Author: &object.Signature{
 			Name:  "Wilfried Mbape",
 			Email: "wilfried.mbape@gmail.com",
-			When:  time.Now(),
+			When:  date,
 		},
 	})
 
@@ -237,6 +262,8 @@ func CommitToRepo() {
 	CheckIfError(err)
 
 	fmt.Println(obj)
+
+	return obj, err
 }
 
 // Example of how to open a repository in a specific path, and push to

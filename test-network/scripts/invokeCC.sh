@@ -66,7 +66,11 @@ chaincodeQuery() {
 
 # chaincodeInvoke PEER ORG (PEER ORG) ...
 # Accepts as many peer/org pairs as desired and requests endorsement from each
-chaincodeInvokeUpdate() {
+chaincodeInvoke() {
+  FUNCTION=$1
+  ARGS=$2
+  shift
+  shift
   parsePeerConnectionParameters $@
   res=$?
   verifyResult $res "Invoke transaction failed on channel '$CHANNEL_NAME' due to uneven number of peer and org parameters "
@@ -75,25 +79,7 @@ chaincodeInvokeUpdate() {
   # peer (if join was successful), let's supply it directly as we know
   # it using the "-o" option
   set -x
-  peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.requirementnet.com --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n requirement $PEER_CONN_PARMS -c '{"function":"updateArtefact","Args":["TRACE0","Equipment Company","README.md","ab037cb6d11130d091375514545970c935e6cbbd","2020-05-03T14:45:07.641700122Z","CLOSED","3.0.0","test from EC"]}' >&log.txt
-  res=$?
-  set +x
-  cat log.txt
-  verifyResult $res "Invoke execution on $PEERS failed "
-  echo "===================== Invoke transaction successful on $PEERS on channel '$CHANNEL_NAME' ===================== "
-  echo
-}
-
-chaincodeInvokeIssue() {
-  parsePeerConnectionParameters $@
-  res=$?
-  verifyResult $res "Invoke transaction failed on channel '$CHANNEL_NAME' due to uneven number of peer and org parameters "
-
-  # while 'peer chaincode' command can get the orderer endpoint from the
-  # peer (if join was successful), let's supply it directly as we know
-  # it using the "-o" option
-  set -x
-  peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.requirementnet.com --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n requirement $PEER_CONN_PARMS -c '{"function":"issueArtefact","Args":["TRACE2","Equipment Company","test.txt","ab037cb6d11130d091375514545970c935e6cbbd","2020-05-03T14:45:07.641700122Z","ISSUED","1.0.0","test from EC"]}' >&log.txt
+  peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.requirementnet.com --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n requirement $PEER_CONN_PARMS -c "{\"function\":$FUNCTION,\"Args\":$ARGS}" >&log.txt
   res=$?
   set +x
   cat log.txt
@@ -107,16 +93,20 @@ echo "Querying chaincode on peer0.org1..."
 chaincodeQuery 0 1 "[\"queryAllTraces\"]"
 
 # Invoke chaincode on all peer0
-echo "Sending invoke transaction on all peer0..."
-chaincodeInvokeUpdate 0 1 0 2 0 3 0 4
+#echo "Sending invoke issue transaction on all peer0..."
+#chaincodeInvoke '"issueArtefact"' "[\"TRACE2\",\"Interface Company\",\"requirement-3.txt\",\"Test from IC\"]" 0 1 0 2 0 3 0 4
+
+# Invoke chaincode on all peer0
+echo "Sending invoke update transaction on all peer0..."
+chaincodeInvoke '"updateArtefact"' "[\"TRACE1\",\"Equipment Company\",\"1.1.0\",\"Test update from EC\"]" 0 1 0 2 0 3 0 4
 
 # Query chaincode on peer0.org2
 echo "Querying chaincode on peer0.org2..."
-chaincodeQuery 0 2 "[\"queryTrace\",\"TRACE0\"]"
+chaincodeQuery 0 2 "[\"queryTrace\",\"TRACE1\"]"
 
 ## Install chaincode on peer1.org2
-#echo "Installing chaincode on peer1.org2..."
-#installChaincode 1 2
+echo "Installing chaincode on peer1.org2..."
+installChaincode 1 2
 
 # Query on chaincode on peer1.org2, check if the result has been updated
 echo "Querying chaincode on peer1.org2..."
