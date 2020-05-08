@@ -334,20 +334,4 @@ sleep 50
 echo "Querying chaincode on peer0.org1..."
 chaincodeQuery 0 1 "[\"queryAllTraces\"]"
 
-# Invoke chaincode on all peer0
-echo "Sending invoke transaction on all peer0..."
-chaincodeInvoke 0 1 0 2 0 3 0 4
-
-# Query chaincode on peer0.org2
-echo "Querying chaincode on peer0.org2..."
-chaincodeQuery 0 2 "[\"queryTrace\",\"TRACE0\"]"
-
-## Install chaincode on peer1.org2
-echo "Installing chaincode on peer1.org2..."
-installChaincode 1 2
-
-# Query on chaincode on peer1.org2, check if the result has been updated
-echo "Querying chaincode on peer1.org2..."
-chaincodeQuery 1 2 "[\"queryAllTraces\"]"
-
 exit 0

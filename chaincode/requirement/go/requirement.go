@@ -50,12 +50,15 @@ type QueryResult struct {
 
 // InitLedger adds a base set of traces to the ledger
 func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) error {
+	timestamp, _ := ctx.GetStub().GetTxTimestamp()
+	date := time.Unix(timestamp.Seconds, int64(timestamp.Nanos))
+
 	traces := []Trace{
-		{Issuer: "Standard Company", Artefact: "README.md", Hash: "c3253074a4c2601e133932efbe9e03f9bb4418d8", Date: time.Now(), State: "ISSUED", Version: "1.0.0", Message: "first commit"},
-		{Issuer: "System Company", Artefact: "Documentation.pdf", Hash: "c3253074a4c2601e133932efbe9e03f9bb4418d9", Date: time.Now(), State: "ISSUED", Version: "1.0.0", Message: "first commit"},
+		{Issuer: "Standard Company", Artefact: "README.md", Hash: "c3253074a4c2601e133932efbe9e03f9bb4418d8", Date: date, State: "ISSUED", Version: "1.0.0", Message: "first commit"},
+		{Issuer: "System Company", Artefact: "Documentation.pdf", Hash: "c3253074a4c2601e133932efbe9e03f9bb4418d9", Date: date, State: "ISSUED", Version: "1.0.0", Message: "first commit"},
 	}
 
-	CloneFromRequirement()
+	CloneRepo()
 
 	for i, trace := range traces {
 		traceAsBytes, _ := json.Marshal(trace)
@@ -70,7 +73,7 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 }
 
 // CreateTrace adds a new trace to the world state with given details
-func (s *SmartContract) CreateTrace(ctx contractapi.TransactionContextInterface, traceNumber string, issuer string, artefact string, hash string, date time.Time, state string, version string, message string) error {
+func (s *SmartContract) IssueArtefact(ctx contractapi.TransactionContextInterface, traceNumber string, issuer string, artefact string, hash string, date time.Time, state string, version string, message string) error {
 	trace := Trace{
 		Issuer:   issuer,
 		Artefact: artefact,
@@ -106,8 +109,8 @@ func (s *SmartContract) UpdateArtefact(ctx contractapi.TransactionContextInterfa
 	traceAsBytes, _ := json.Marshal(trace)
 
 	// Interact with git repository
-	CommitToRequirement()
-	PushToRequirement()
+	CommitToRepo()
+	PushToRepo()
 
 	return ctx.GetStub().PutState(traceNumber, traceAsBytes)
 }
@@ -165,7 +168,7 @@ func (s *SmartContract) QueryAllTraces(ctx contractapi.TransactionContextInterfa
  * Go-Git Function
  *
  */
-func CloneFromRequirement() {
+func CloneRepo() {
 
 	fmt.Printf("git clone https://github.com/BlueStone1995/requirement-test.git")
 
@@ -186,7 +189,7 @@ func CloneFromRequirement() {
 	fmt.Println(commit)
 }
 
-func CommitToRequirement() {
+func CommitToRepo() {
 
 	// Opens an already existing repository.
 	r, err := git.PlainOpen("/tmp/requirement-test")
@@ -197,14 +200,14 @@ func CommitToRequirement() {
 
 	// ... we need a file to commit so let's create a new file inside of the
 	// worktree of the project using the go standard library.
-	Info("echo \"hello world from Interface Company!\" > example-git-file")
-	filename := filepath.Join("/tmp/requirement-test", "example-git-file")
+	Info("echo \"hello world from Interface Company!\" > example-test-file")
+	filename := filepath.Join("/tmp/requirement-test", "example-test-file")
 	err = ioutil.WriteFile(filename, []byte("hello world!"), 0644)
 	CheckIfError(err)
 
 	// Adds the new file to the staging area.
-	Info("git add example-git-file")
-	_, err = w.Add("example-git-file")
+	Info("git add example-test-file")
+	_, err = w.Add("example-test-file")
 	CheckIfError(err)
 
 	// We can verify the current status of the worktree using the method Status.
@@ -238,7 +241,7 @@ func CommitToRequirement() {
 
 // Example of how to open a repository in a specific path, and push to
 // its default remote (origin).
-func PushToRequirement() {
+func PushToRepo() {
 
 	r, err := git.PlainOpen("/tmp/requirement-test")
 	CheckIfError(err)
