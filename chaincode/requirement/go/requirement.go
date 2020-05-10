@@ -3,15 +3,15 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
-	"path/filepath"
+	"os/exec"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing/object"
+	"github.com/go-git/go-git/v5/config"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
@@ -54,8 +54,7 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 	date := time.Unix(timestamp.Seconds, int64(timestamp.Nanos))
 
 	traces := []Trace{
-		{Issuer: "Standard Company", Artefact: "README.md", Hash: "00e3539a4cb62e11acce8f980476f524417b56a3", Date: date, State: "ISSUED", Version: "1.0.0", Message: "first commit"},
-		{Issuer: "System Company", Artefact: "artefact-test.txt", Hash: "13e55a9d82078c4afc3e3cda2ca81319ec942e2b", Date: date, State: "ISSUED", Version: "1.0.0", Message: "first commit"},
+		{Issuer: "Standard Company", Artefact: "README.md", Hash: "246768bd999c2df2c03a5e33219ae4b3b52d9de6", Date: date, State: "ISSUED", Version: "1.0.0", Message: "Initial commit"},
 	}
 
 	CloneRepo()
@@ -87,17 +86,11 @@ func (s *SmartContract) IssueArtefact(ctx contractapi.TransactionContextInterfac
 		Message:  message,
 	}
 
-	// Commit and push new artefact
-	/**
-	obj, err := CommitToRepo(true, trace, date)
+	// Pull Fork and Checkout on new branch
+	PullFork()
+	CheckoutNewBranch()
+	MergeOnPeer()
 
-	if err != nil {
-		return err
-	}
-	PushToRepo()
-
-	trace.Hash = obj.Hash.String()
-	*/
 	traceAsBytes, _ := json.Marshal(trace)
 
 	return ctx.GetStub().PutState(traceNumber, traceAsBytes)
@@ -121,17 +114,10 @@ func (s *SmartContract) UpdateArtefact(ctx contractapi.TransactionContextInterfa
 	trace.Message = message
 	trace.Date = date
 
-	// Commit and push new artefact
-	/**
-	obj, errCommit := CommitToRepo(false, trace, date)
-
-	if errCommit != nil {
-		return errCommit
-	}
-	PushToRepo()
-
-	trace.Hash = obj.Hash.String()
-	*/
+	// Pull Fork and Checkout on new branch
+	PullFork()
+	CheckoutNewBranch()
+	MergeOnPeer()
 
 	traceAsBytes, _ := json.Marshal(trace)
 
@@ -193,11 +179,15 @@ func (s *SmartContract) QueryAllTraces(ctx contractapi.TransactionContextInterfa
  */
 func CloneRepo() {
 
-	fmt.Printf("git clone https://github.com/BlueStone1995/requirement-test.git")
+	Info("git clone https://github.com/StandardCompany/requirement-test.git")
 
 	r, err := git.PlainClone("/tmp/requirement-test", false, &git.CloneOptions{
-		URL:      "https://github.com/BlueStone1995/requirement-test.git",
+		URL:      "https://github.com/StandardCompany/requirement-test.git",
 		Progress: os.Stdout,
+		Auth: &http.BasicAuth{
+			Username: "StandardCompany",
+			Password: "sc0-password",
+		},
 	})
 
 	CheckIfError(err)
@@ -205,6 +195,7 @@ func CloneRepo() {
 	// ... retrieving the branch being pointed by HEAD
 	ref, err := r.Head()
 	CheckIfError(err)
+
 	// ... retrieving the commit object
 	commit, err := r.CommitObject(ref.Hash())
 	CheckIfError(err)
@@ -212,27 +203,13 @@ func CloneRepo() {
 	fmt.Println(commit)
 }
 
-func CommitToRepo(add bool, trace *Trace, date time.Time) (*object.Commit, error) {
-
-	// Opens an already existing repository.
+// Pull changes from remote repository
+func PullRepo() {
 	r, err := git.PlainOpen("/tmp/requirement-test")
 	CheckIfError(err)
 
 	w, err := r.Worktree()
 	CheckIfError(err)
-
-	// worktree of the project using the go standard library.
-	Info("echo \"Commit operation on artefact\" > " + trace.Artefact)
-	filename := filepath.Join("/tmp/requirement-test", trace.Artefact)
-	err = ioutil.WriteFile(filename, []byte(trace.Message), 0644)
-	CheckIfError(err)
-
-	if add {
-		// Adds the new file to the staging area.
-		Info("git add " + trace.Artefact)
-		_, err = w.Add(trace.Artefact)
-		CheckIfError(err)
-	}
 
 	// We can verify the current status of the worktree using the method Status.
 	Info("git status --porcelain")
@@ -241,46 +218,77 @@ func CommitToRepo(add bool, trace *Trace, date time.Time) (*object.Commit, error
 
 	fmt.Println(status)
 
-	// Commits the current staging area to the repository, with the new file
-	// just created. We should provide the object.Signature of Author of the
-	// commit.
-	Info("git commit -m " + trace.Artefact)
-	commit, err := w.Commit(trace.Artefact+" go-git commit", &git.CommitOptions{
-		All: true,
-		Author: &object.Signature{
-			Name:  "Wilfried Mbape",
-			Email: "wilfried.mbape@gmail.com",
-			When:  date,
+	Info("git pull")
+	err = w.Pull(&git.PullOptions{
+		ReferenceName: plumbing.Master,
+		Auth: &http.BasicAuth{
+			Username: "StandardCompany",
+			Password: "sc0-password",
 		},
 	})
-
 	CheckIfError(err)
 
-	// Prints the current HEAD to verify that all worked well.
-	Info("git show -s")
-	obj, err := r.CommitObject(commit)
+	ref, err := r.Head()
 	CheckIfError(err)
 
-	fmt.Println(obj)
-
-	return obj, err
+	fmt.Println(ref)
 }
 
-// Example of how to open a repository in a specific path, and push to
-// its default remote (origin).
-func PushToRepo() {
-
+func PullFork() {
 	r, err := git.PlainOpen("/tmp/requirement-test")
 	CheckIfError(err)
 
-	Info("git push")
-	// push using default options
-	err = r.Push(&git.PushOptions{
+	// Fetch fork remote branch
+	err = r.Fetch(&git.FetchOptions{
+		RefSpecs: []config.RefSpec{"refs/pull/2/head:EquipmentCompany-test"},
 		Auth: &http.BasicAuth{
-			Username: "wmbape",
-			Password: "papmUb-qochok-5quxra",
+			Username: "StandardCompany",
+			Password: "sc0-password",
 		},
 	})
+	CheckIfError(err)
+
+	// Print the latest commit that was just pulled
+	ref, err := r.Head()
+	CheckIfError(err)
+
+	commit, err := r.CommitObject(ref.Hash())
+	CheckIfError(err)
+
+	fmt.Println(commit)
+}
+
+func CheckoutNewBranch() {
+	r, err := git.PlainOpen("/tmp/requirement-test")
+	fmt.Println(err)
+
+	w, err := r.Worktree()
+	CheckIfError(err)
+
+	// We can verify the current status of the worktree using the method Status.
+	Info("git status --porcelain")
+	status, err := w.Status()
+	CheckIfError(err)
+
+	fmt.Println(status)
+
+	Info("git checkout EquipmentCompany-test")
+	w.Checkout(&git.CheckoutOptions{
+		Branch: plumbing.ReferenceName("EquipmentCompany-test"),
+	})
+	CheckIfError(err)
+
+	ref, err := r.Head()
+	CheckIfError(err)
+
+	fmt.Println(ref)
+}
+
+func MergeOnPeer() {
+	cmd := exec.Command("git", "merge", "--no-ff", "EquipmentCompany-test")
+	cmd.Dir = "/tmp/requirement-test"
+	err := cmd.Run()
+
 	CheckIfError(err)
 }
 
