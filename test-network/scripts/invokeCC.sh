@@ -97,8 +97,8 @@ echo "Sending invoke issue transaction on all peer0..."
 chaincodeInvoke '"issueArtefact"' "[\"TRACE1\",\"Equipment Company\",\"test.txt\",\"Test from EC\"]" 0 1 0 2 0 3 0 4
 
 # Invoke chaincode on all peer0
-#echo "Sending invoke update transaction on all peer0..."
-#chaincodeInvoke '"updateArtefact"' "[\"TRACE1\",\"Equipment Company\",\"1.1.0\",\"Test update from EC\"]" 0 1 0 2 0 3 0 4
+echo "Sending invoke update transaction on all peer0..."
+chaincodeInvoke '"updateArtefact"' "[\"TRACE1\",\"Equipment Company\",\"1.1.0\",\"Test update from EC\"]" 0 1 0 2 0 3 0 4
 
 # Query chaincode on peer0.org2
 echo "Querying chaincode on peer0.org2..."

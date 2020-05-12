@@ -15,6 +15,9 @@ Script bash:
 # Interact with network
 ./network.sh invokeCC
 
+#Access to docker chaincode
+sudo docker exec -it dev-peer0.org1.requirementnet.com-requirement /bin/sh
+
 # Stopping network
 ./network.sh down
 ```

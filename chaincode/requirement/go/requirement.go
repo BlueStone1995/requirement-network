@@ -181,7 +181,7 @@ func CloneRepo() {
 
 	Info("git clone https://github.com/StandardCompany/requirement-test.git")
 
-	r, err := git.PlainClone("/tmp/requirement-test", false, &git.CloneOptions{
+	r, err := git.PlainClone("/home/chaincode/requirement-test", false, &git.CloneOptions{
 		URL:      "https://github.com/StandardCompany/requirement-test.git",
 		Progress: os.Stdout,
 		Auth: &http.BasicAuth{
@@ -205,7 +205,7 @@ func CloneRepo() {
 
 // Pull changes from remote repository
 func PullRepo() {
-	r, err := git.PlainOpen("/tmp/requirement-test")
+	r, err := git.PlainOpen("/home/chaincode/requirement-test")
 	CheckIfError(err)
 
 	w, err := r.Worktree()
@@ -235,7 +235,7 @@ func PullRepo() {
 }
 
 func PullFork() {
-	r, err := git.PlainOpen("/tmp/requirement-test")
+	r, err := git.PlainOpen("/home/chaincode/requirement-test")
 	CheckIfError(err)
 
 	// Fetch fork remote branch
@@ -259,7 +259,7 @@ func PullFork() {
 }
 
 func CheckoutNewBranch() {
-	r, err := git.PlainOpen("/tmp/requirement-test")
+	r, err := git.PlainOpen("/home/chaincode/requirement-test")
 	fmt.Println(err)
 
 	w, err := r.Worktree()
@@ -286,7 +286,7 @@ func CheckoutNewBranch() {
 
 func MergeOnPeer() {
 	cmd := exec.Command("git", "merge", "--no-ff", "EquipmentCompany-test")
-	cmd.Dir = "/tmp/requirement-test"
+	cmd.Dir = "/home/chaincode/requirement-test"
 	err := cmd.Run()
 
 	CheckIfError(err)
