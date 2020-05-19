@@ -489,7 +489,7 @@ CC_SRC_LANGUAGE=golang
 # Chaincode version
 VERSION=1
 # default image tag
-IMAGETAG="latest"
+IMAGETAG="2.1"
 # default database
 DATABASE="leveldb"
 
