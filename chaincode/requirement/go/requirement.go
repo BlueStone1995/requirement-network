@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"strconv"
@@ -86,9 +87,7 @@ func (s *SmartContract) IssueArtefact(ctx contractapi.TransactionContextInterfac
 		Message:  message,
 	}
 
-	// Pull Fork and Checkout on new branch
-	PullFork()
-	CheckoutNewBranch()
+	// Merge Pull Request
 	MergeOnPeer()
 
 	traceAsBytes, _ := json.Marshal(trace)
@@ -114,9 +113,7 @@ func (s *SmartContract) UpdateArtefact(ctx contractapi.TransactionContextInterfa
 	trace.Message = message
 	trace.Date = date
 
-	// Pull Fork and Checkout on new branch
-	PullFork()
-	CheckoutNewBranch()
+	// Merge Pull Request
 	MergeOnPeer()
 
 	traceAsBytes, _ := json.Marshal(trace)
@@ -285,11 +282,40 @@ func CheckoutNewBranch() {
 }
 
 func MergeOnPeer() {
-	cmd := exec.Command("git", "merge", "--no-ff", "EquipmentCompany-test")
+	log.Printf("Running git config --global user.email standard.company.test@gmail.com")
+	cmd := exec.Command("git", "config", "--global", "user.email", "standard.company.test@gmail.com")
 	cmd.Dir = "/home/chaincode/requirement-test"
 	err := cmd.Run()
 
+	log.Printf("Running git config --global user.name StandardCompany")
+	cmd = exec.Command("git", "config", "--global", "user.name", "StandardCompany")
+	cmd.Dir = "/home/chaincode/requirement-test"
+	err = cmd.Run()
+
 	CheckIfError(err)
+
+	log.Printf("Running git fetch origin pull/2/head:EquipmentCompany-test")
+	cmd = exec.Command("git", "fetch", "origin", "pull/2/head:EquipmentCompany-test")
+	cmd.Dir = "/home/chaincode/requirement-test"
+	err = cmd.Run()
+
+	CheckIfError(err)
+
+	log.Printf("Running git merge --no-ff --no-edit EquipmentCompany-test")
+	cmd = exec.Command("git", "merge", "--no-ff", "--no-edit", "EquipmentCompany-test")
+	cmd.Dir = "/home/chaincode/requirement-test"
+	err = cmd.Run()
+
+	CheckIfError(err)
+
+	log.Printf("Running git status")
+	cmd = exec.Command("git", "status")
+	cmd.Dir = "/home/chaincode/requirement-test"
+	err = cmd.Run()
+
+	CheckIfError(err)
+
+	// TODO: Add git fetch befor other operation !
 }
 
 // CheckArgs should be used to ensure the right command line arguments are
