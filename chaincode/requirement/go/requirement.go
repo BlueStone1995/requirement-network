@@ -11,8 +11,6 @@ import (
 	"time"
 
 	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/config"
-	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
@@ -59,6 +57,7 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 	}
 
 	CloneRepo()
+	GitConfig()
 
 	for i, trace := range traces {
 		traceAsBytes, _ := json.Marshal(trace)
@@ -73,14 +72,15 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 }
 
 // CreateTrace adds a new trace to the world state with given details
-func (s *SmartContract) IssueArtefact(ctx contractapi.TransactionContextInterface, traceNumber string, issuer string, artefact string, message string) error {
+func (s *SmartContract) IssueArtefact(ctx contractapi.TransactionContextInterface, traceNumber string,
+	idPullRequest string, branchName string, issuer string, artefact string, hash string, message string) error {
 	timestamp, _ := ctx.GetStub().GetTxTimestamp()
 	date := time.Unix(timestamp.Seconds, int64(timestamp.Nanos))
 
 	trace := Trace{
 		Issuer:   issuer,
 		Artefact: artefact,
-		Hash:     "",
+		Hash:     hash,
 		Date:     date,
 		State:    "ISSUED",
 		Version:  "1.0.0",
@@ -88,7 +88,7 @@ func (s *SmartContract) IssueArtefact(ctx contractapi.TransactionContextInterfac
 	}
 
 	// Merge Pull Request
-	MergeOnPeer()
+	MergeOnPeer(idPullRequest, branchName)
 
 	traceAsBytes, _ := json.Marshal(trace)
 
@@ -96,8 +96,8 @@ func (s *SmartContract) IssueArtefact(ctx contractapi.TransactionContextInterfac
 }
 
 // UpdateArtefact updates the fields of trace with given id in world state
-func (s *SmartContract) UpdateArtefact(ctx contractapi.TransactionContextInterface, traceNumber string, issuer string,
-	version string, message string) error {
+func (s *SmartContract) UpdateArtefact(ctx contractapi.TransactionContextInterface, traceNumber string,
+	idPullRequest string, branchName string, issuer string, hash string, version string, message string) error {
 	trace, err := s.QueryTrace(ctx, traceNumber)
 
 	if err != nil {
@@ -108,13 +108,14 @@ func (s *SmartContract) UpdateArtefact(ctx contractapi.TransactionContextInterfa
 	date := time.Unix(timestamp.Seconds, int64(timestamp.Nanos))
 
 	trace.Issuer = issuer
+	trace.Hash = hash
 	trace.State = "UPDATED"
 	trace.Version = version
 	trace.Message = message
 	trace.Date = date
 
 	// Merge Pull Request
-	MergeOnPeer()
+	MergeOnPeer(idPullRequest, branchName)
 
 	traceAsBytes, _ := json.Marshal(trace)
 
@@ -171,7 +172,7 @@ func (s *SmartContract) QueryAllTraces(ctx contractapi.TransactionContextInterfa
 }
 
 /**
- * Go-Git Function
+ * Git Function
  *
  */
 func CloneRepo() {
@@ -200,92 +201,13 @@ func CloneRepo() {
 	fmt.Println(commit)
 }
 
-// Pull changes from remote repository
-func PullRepo() {
-	r, err := git.PlainOpen("/home/chaincode/requirement-test")
-	CheckIfError(err)
-
-	w, err := r.Worktree()
-	CheckIfError(err)
-
-	// We can verify the current status of the worktree using the method Status.
-	Info("git status --porcelain")
-	status, err := w.Status()
-	CheckIfError(err)
-
-	fmt.Println(status)
-
-	Info("git pull")
-	err = w.Pull(&git.PullOptions{
-		ReferenceName: plumbing.Master,
-		Auth: &http.BasicAuth{
-			Username: "StandardCompany",
-			Password: "sc0-password",
-		},
-	})
-	CheckIfError(err)
-
-	ref, err := r.Head()
-	CheckIfError(err)
-
-	fmt.Println(ref)
-}
-
-func PullFork() {
-	r, err := git.PlainOpen("/home/chaincode/requirement-test")
-	CheckIfError(err)
-
-	// Fetch fork remote branch
-	err = r.Fetch(&git.FetchOptions{
-		RefSpecs: []config.RefSpec{"refs/pull/2/head:EquipmentCompany-test"},
-		Auth: &http.BasicAuth{
-			Username: "StandardCompany",
-			Password: "sc0-password",
-		},
-	})
-	CheckIfError(err)
-
-	// Print the latest commit that was just pulled
-	ref, err := r.Head()
-	CheckIfError(err)
-
-	commit, err := r.CommitObject(ref.Hash())
-	CheckIfError(err)
-
-	fmt.Println(commit)
-}
-
-func CheckoutNewBranch() {
-	r, err := git.PlainOpen("/home/chaincode/requirement-test")
-	fmt.Println(err)
-
-	w, err := r.Worktree()
-	CheckIfError(err)
-
-	// We can verify the current status of the worktree using the method Status.
-	Info("git status --porcelain")
-	status, err := w.Status()
-	CheckIfError(err)
-
-	fmt.Println(status)
-
-	Info("git checkout EquipmentCompany-test")
-	w.Checkout(&git.CheckoutOptions{
-		Branch: plumbing.ReferenceName("EquipmentCompany-test"),
-	})
-	CheckIfError(err)
-
-	ref, err := r.Head()
-	CheckIfError(err)
-
-	fmt.Println(ref)
-}
-
-func MergeOnPeer() {
+func GitConfig() {
 	log.Printf("Running git config --global user.email standard.company.test@gmail.com")
 	cmd := exec.Command("git", "config", "--global", "user.email", "standard.company.test@gmail.com")
 	cmd.Dir = "/home/chaincode/requirement-test"
 	err := cmd.Run()
+
+	CheckIfError(err)
 
 	log.Printf("Running git config --global user.name StandardCompany")
 	cmd = exec.Command("git", "config", "--global", "user.name", "StandardCompany")
@@ -293,16 +215,21 @@ func MergeOnPeer() {
 	err = cmd.Run()
 
 	CheckIfError(err)
+}
 
-	log.Printf("Running git fetch origin pull/2/head:EquipmentCompany-test")
-	cmd = exec.Command("git", "fetch", "origin", "pull/2/head:EquipmentCompany-test")
+func MergeOnPeer(id string, branch string) {
+	var pullRef string
+	pullRef = "pull/" + id + "/head:" + branch
+
+	log.Printf("Running git fetch origin pull/%s/head:%s", id, branch)
+	cmd := exec.Command("git", "fetch", "origin", pullRef)
 	cmd.Dir = "/home/chaincode/requirement-test"
-	err = cmd.Run()
+	err := cmd.Run()
 
 	CheckIfError(err)
 
-	log.Printf("Running git merge --no-ff --no-edit EquipmentCompany-test")
-	cmd = exec.Command("git", "merge", "--no-ff", "--no-edit", "EquipmentCompany-test")
+	log.Printf("Running git merge --no-ff --no-edit %s", branch)
+	cmd = exec.Command("git", "merge", "--no-ff", "--no-edit", branch)
 	cmd.Dir = "/home/chaincode/requirement-test"
 	err = cmd.Run()
 
@@ -314,8 +241,6 @@ func MergeOnPeer() {
 	err = cmd.Run()
 
 	CheckIfError(err)
-
-	// TODO: Add git fetch befor other operation !
 }
 
 // CheckArgs should be used to ensure the right command line arguments are
