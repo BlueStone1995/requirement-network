@@ -58,7 +58,7 @@ services:
 
   peer0.org1.requirementnet.com:
     container_name: peer0.org1.requirementnet.com
-    image: hyperledger/fabric-peer:$IMAGE_TAG
+    image: bluestone1995/fabric-peer:$IMAGE_TAG
     dns_search: .
     environment:
       - GODEBUG=netdns=go
@@ -91,6 +91,8 @@ services:
         - ../organizations/peerOrganizations/org1.requirementnet.com/peers/peer0.org1.requirementnet.com/msp:/etc/hyperledger/fabric/msp
         - ../organizations/peerOrganizations/org1.requirementnet.com/peers/peer0.org1.requirementnet.com/tls:/etc/hyperledger/fabric/tls
         - peer0.org1.requirementnet.com:/var/hyperledger/production
+        - ./../external-builder:/etc/hyperledger/external-builder
+        - ./../config-edit/:/etc/hyperledger/fabric
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: peer node start
     ports:
@@ -100,7 +102,7 @@ services:
 
   peer1.org1.requirementnet.com:
     container_name: peer1.org1.requirementnet.com
-    image: hyperledger/fabric-peer:$IMAGE_TAG
+    image: bluestone1995/fabric-peer:$IMAGE_TAG
     dns_search: .
     environment:
       - GODEBUG=netdns=go
@@ -133,6 +135,8 @@ services:
       - ../organizations/peerOrganizations/org1.requirementnet.com/peers/peer1.org1.requirementnet.com/msp:/etc/hyperledger/fabric/msp
       - ../organizations/peerOrganizations/org1.requirementnet.com/peers/peer1.org1.requirementnet.com/tls:/etc/hyperledger/fabric/tls
       - peer1.org1.requirementnet.com:/var/hyperledger/production
+      - ./../external-builder:/etc/hyperledger/external-builder
+      - ./../config-edit/:/etc/hyperledger/fabric
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: peer node start
     ports:
@@ -142,7 +146,7 @@ services:
 
   peer0.org2.requirementnet.com:
     container_name: peer0.org2.requirementnet.com
-    image: hyperledger/fabric-peer:$IMAGE_TAG
+    image: bluestone1995/fabric-peer:$IMAGE_TAG
     dns_search: .
     environment:
       - GODEBUG=netdns=go
@@ -175,6 +179,8 @@ services:
         - ../organizations/peerOrganizations/org2.requirementnet.com/peers/peer0.org2.requirementnet.com/msp:/etc/hyperledger/fabric/msp
         - ../organizations/peerOrganizations/org2.requirementnet.com/peers/peer0.org2.requirementnet.com/tls:/etc/hyperledger/fabric/tls
         - peer0.org2.requirementnet.com:/var/hyperledger/production
+        - ./../external-builder:/etc/hyperledger/external-builder
+        - ./../config-edit/:/etc/hyperledger/fabric
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: peer node start
     ports:
@@ -184,7 +190,7 @@ services:
 
   peer1.org2.requirementnet.com:
     container_name: peer1.org2.requirementnet.com
-    image: hyperledger/fabric-peer:$IMAGE_TAG
+    image: bluestone1995/fabric-peer:$IMAGE_TAG
     dns_search: .
     environment:
       - GODEBUG=netdns=go
@@ -217,6 +223,8 @@ services:
       - ../organizations/peerOrganizations/org2.requirementnet.com/peers/peer1.org2.requirementnet.com/msp:/etc/hyperledger/fabric/msp
       - ../organizations/peerOrganizations/org2.requirementnet.com/peers/peer1.org2.requirementnet.com/tls:/etc/hyperledger/fabric/tls
       - peer1.org2.requirementnet.com:/var/hyperledger/production
+      - ./../external-builder:/etc/hyperledger/external-builder
+      - ./../config-edit/:/etc/hyperledger/fabric
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: peer node start
     ports:
@@ -226,7 +234,7 @@ services:
 
   peer0.org3.requirementnet.com:
     container_name: peer0.org3.requirementnet.com
-    image: hyperledger/fabric-peer:$IMAGE_TAG
+    image: bluestone1995/fabric-peer:$IMAGE_TAG
     dns_search: .
     environment:
       - GODEBUG=netdns=go
@@ -259,6 +267,8 @@ services:
       - ../organizations/peerOrganizations/org3.requirementnet.com/peers/peer0.org3.requirementnet.com/msp:/etc/hyperledger/fabric/msp
       - ../organizations/peerOrganizations/org3.requirementnet.com/peers/peer0.org3.requirementnet.com/tls:/etc/hyperledger/fabric/tls
       - peer0.org3.requirementnet.com:/var/hyperledger/production
+      - ./../external-builder:/etc/hyperledger/external-builder
+      - ./../config-edit/:/etc/hyperledger/fabric
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: peer node start
     ports:
@@ -268,7 +278,7 @@ services:
 
   peer1.org3.requirementnet.com:
     container_name: peer1.org3.requirementnet.com
-    image: hyperledger/fabric-peer:$IMAGE_TAG
+    image: bluestone1995/fabric-peer:$IMAGE_TAG
     dns_search: .
     environment:
       - GODEBUG=netdns=go
@@ -301,6 +311,8 @@ services:
       - ../organizations/peerOrganizations/org3.requirementnet.com/peers/peer1.org3.requirementnet.com/msp:/etc/hyperledger/fabric/msp
       - ../organizations/peerOrganizations/org3.requirementnet.com/peers/peer1.org3.requirementnet.com/tls:/etc/hyperledger/fabric/tls
       - peer1.org3.requirementnet.com:/var/hyperledger/production
+      - ./../external-builder:/etc/hyperledger/external-builder
+      - ./../config-edit/:/etc/hyperledger/fabric
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: peer node start
     ports:
@@ -310,7 +322,7 @@ services:
 
   peer0.org4.requirementnet.com:
     container_name: peer0.org4.requirementnet.com
-    image: hyperledger/fabric-peer:$IMAGE_TAG
+    image: bluestone1995/fabric-peer:$IMAGE_TAG
     dns_search: .
     environment:
       - GODEBUG=netdns=go
@@ -343,6 +355,8 @@ services:
       - ../organizations/peerOrganizations/org4.requirementnet.com/peers/peer0.org4.requirementnet.com/msp:/etc/hyperledger/fabric/msp
       - ../organizations/peerOrganizations/org4.requirementnet.com/peers/peer0.org4.requirementnet.com/tls:/etc/hyperledger/fabric/tls
       - peer0.org4.requirementnet.com:/var/hyperledger/production
+      - ./../external-builder:/etc/hyperledger/external-builder
+      - ./../config-edit/:/etc/hyperledger/fabric
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: peer node start
     ports:
@@ -352,7 +366,7 @@ services:
 
   peer1.org4.requirementnet.com:
     container_name: peer1.org4.requirementnet.com
-    image: hyperledger/fabric-peer:$IMAGE_TAG
+    image: bluestone1995/fabric-peer:$IMAGE_TAG
     dns_search: .
     environment:
       - GODEBUG=netdns=go
@@ -385,6 +399,8 @@ services:
       - ../organizations/peerOrganizations/org4.requirementnet.com/peers/peer1.org4.requirementnet.com/msp:/etc/hyperledger/fabric/msp
       - ../organizations/peerOrganizations/org4.requirementnet.com/peers/peer1.org4.requirementnet.com/tls:/etc/hyperledger/fabric/tls
       - peer1.org4.requirementnet.com:/var/hyperledger/production
+      - ./../external-builder:/etc/hyperledger/external-builder
+      - ./../config-edit/:/etc/hyperledger/fabric
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: peer node start
     ports:

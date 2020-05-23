@@ -266,7 +266,7 @@ chaincodeInvoke() {
   # peer (if join was successful), let's supply it directly as we know
   # it using the "-o" option
   set -x
-  peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.requirementnet.com --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n requirement $PEER_CONN_PARMS -c '{"function":"updateArtefact","Args":["TRACE0","Equipment Company","README.md","ab037cb6d11130d091375514545970c935e6cbbd","2020-10-25T21:34:55","UPDATED","test from EC"]}' >&log.txt
+  peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.requirementnet.com --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n requirement $PEER_CONN_PARMS -c '{"function":"updateArtefact","Args":["TRACE0","Equipment Company","README.md","ab037cb6d11130d091375514545970c935e6cbbd","2020-05-03T14:45:07.641700122Z","UPDATED","1.0.0","test from EC"]}' >&log.txt
   res=$?
   set +x
   cat log.txt
@@ -333,21 +333,5 @@ sleep 50
 # Query chaincode on peer0.org1
 echo "Querying chaincode on peer0.org1..."
 chaincodeQuery 0 1 "[\"queryAllTraces\"]"
-
-# Invoke chaincode on all peer0
-echo "Sending invoke transaction on all peer0..."
-chaincodeInvoke 0 1 0 2 0 3 0 4
-
-# Query chaincode on peer0.org2
-echo "Querying chaincode on peer0.org2..."
-chaincodeQuery 0 2 "[\"queryTrace\",\"TRACE0\"]"
-
-## Install chaincode on peer1.org2
-echo "Installing chaincode on peer1.org2..."
-installChaincode 1 2
-
-# Query on chaincode on peer1.org2, check if the result has been updated
-echo "Querying chaincode on peer1.org2..."
-chaincodeQuery 1 2 "[\"queryAllTraces\"]"
 
 exit 0
