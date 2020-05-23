@@ -1,31 +1,24 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
-
 package main
 
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"os"
+	"os/exec"
 	"strconv"
+	"strings"
+	"time"
 
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
+
+/**
+ * Struct Type
+ *
+ */
 
 // SmartContract provides functions for managing a trace
 type SmartContract struct {
@@ -34,12 +27,13 @@ type SmartContract struct {
 
 // Trace describes basic details of what makes up a trace
 type Trace struct {
-	Issuer   string `json:"issuer"`
-	Artefact string `json:"artefact"`
-	Hash     string `json:"hash"`
-	Date     string `json:"date"`
-	State    string `json:"state"`
-	Message  string `json:"message"`
+	Issuer   string    `json:"issuer"`
+	Artefact string    `json:"artefact"`
+	Hash     string    `json:"hash"`
+	Date     time.Time `json:"date"`
+	State    string    `json:"state"`
+	Version  string    `json:"version"`
+	Message  string    `json:"message"`
 }
 
 // QueryResult structure used for handling result of query
@@ -48,12 +42,22 @@ type QueryResult struct {
 	Record *Trace
 }
 
+/**
+ * Chaincode Function
+ *
+ */
+
 // InitLedger adds a base set of traces to the ledger
 func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) error {
+	timestamp, _ := ctx.GetStub().GetTxTimestamp()
+	date := time.Unix(timestamp.Seconds, int64(timestamp.Nanos))
+
 	traces := []Trace{
-		{Issuer: "Standard Company", Artefact: "README.md", Hash: "c3253074a4c2601e133932efbe9e03f9bb4418d8", Date: "2020-01-25T21:34:55", State: "ISSUED", Message: "first commit"},
-		{Issuer: "System Company", Artefact: "Documentation.pdf", Hash: "c3253074a4c2601e133932efbe9e03f9bb4418d9", Date: "2020-01-25T21:34:55", State: "ISSUED", Message: "first commit"},
+		{Issuer: "Standard Company", Artefact: "README.md", Hash: "246768bd999c2df2c03a5e33219ae4b3b52d9de6", Date: date, State: "ISSUED", Version: "1.0.0", Message: "Initial commit"},
 	}
+
+	CloneRepo()
+	GitConfig()
 
 	for i, trace := range traces {
 		traceAsBytes, _ := json.Marshal(trace)
@@ -68,15 +72,50 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 }
 
 // CreateTrace adds a new trace to the world state with given details
-func (s *SmartContract) CreateTrace(ctx contractapi.TransactionContextInterface, traceNumber string, issuer string, artefact string, hash string, date string, state string, message string) error {
+func (s *SmartContract) IssueArtefact(ctx contractapi.TransactionContextInterface, traceNumber string,
+	idPullRequest string, branchName string, issuer string, artefact string, hash string, message string) error {
+	timestamp, _ := ctx.GetStub().GetTxTimestamp()
+	date := time.Unix(timestamp.Seconds, int64(timestamp.Nanos))
+
 	trace := Trace{
 		Issuer:   issuer,
 		Artefact: artefact,
 		Hash:     hash,
 		Date:     date,
-		State:    state,
+		State:    "ISSUED",
+		Version:  "1.0.0",
 		Message:  message,
 	}
+
+	// Merge Pull Request
+	MergeOnPeer(idPullRequest, branchName)
+
+	traceAsBytes, _ := json.Marshal(trace)
+
+	return ctx.GetStub().PutState(traceNumber, traceAsBytes)
+}
+
+// UpdateArtefact updates the fields of trace with given id in world state
+func (s *SmartContract) UpdateArtefact(ctx contractapi.TransactionContextInterface, traceNumber string,
+	idPullRequest string, branchName string, issuer string, hash string, version string, message string) error {
+	trace, err := s.QueryTrace(ctx, traceNumber)
+
+	if err != nil {
+		return err
+	}
+
+	timestamp, _ := ctx.GetStub().GetTxTimestamp()
+	date := time.Unix(timestamp.Seconds, int64(timestamp.Nanos))
+
+	trace.Issuer = issuer
+	trace.Hash = hash
+	trace.State = "UPDATED"
+	trace.Version = version
+	trace.Message = message
+	trace.Date = date
+
+	// Merge Pull Request
+	MergeOnPeer(idPullRequest, branchName)
 
 	traceAsBytes, _ := json.Marshal(trace)
 
@@ -132,29 +171,112 @@ func (s *SmartContract) QueryAllTraces(ctx contractapi.TransactionContextInterfa
 	return results, nil
 }
 
-// UpdateArtefact updates the fields of trace with given id in world state
-func (s *SmartContract) UpdateArtefact(ctx contractapi.TransactionContextInterface, traceNumber string, issuer string, artefact string,
-	hash string, date string, state string, message string) error {
-	trace, err := s.QueryTrace(ctx, traceNumber)
+/**
+ * Git Function
+ *
+ */
+func CloneRepo() {
 
-	if err != nil {
-		return err
-	}
+	Info("git clone https://github.com/StandardCompany/requirement-test.git")
 
-	trace.Issuer = issuer
-	trace.Artefact = artefact
-	trace.Hash = hash
-	trace.Date = date
-	trace.State = state
-	trace.Message = message
+	r, err := git.PlainClone("/home/chaincode/requirement-test", false, &git.CloneOptions{
+		URL:      "https://github.com/StandardCompany/requirement-test.git",
+		Progress: os.Stdout,
+		Auth: &http.BasicAuth{
+			Username: "StandardCompany",
+			Password: "sc0-password",
+		},
+	})
 
-	traceAsBytes, _ := json.Marshal(trace)
+	CheckIfError(err)
 
-	return ctx.GetStub().PutState(traceNumber, traceAsBytes)
+	// ... retrieving the branch being pointed by HEAD
+	ref, err := r.Head()
+	CheckIfError(err)
+
+	// ... retrieving the commit object
+	commit, err := r.CommitObject(ref.Hash())
+	CheckIfError(err)
+
+	fmt.Println(commit)
 }
 
-func main() {
+func GitConfig() {
+	log.Printf("Running git config --global user.email standard.company.test@gmail.com")
+	cmd := exec.Command("git", "config", "--global", "user.email", "standard.company.test@gmail.com")
+	cmd.Dir = "/home/chaincode/requirement-test"
+	err := cmd.Run()
 
+	CheckIfError(err)
+
+	log.Printf("Running git config --global user.name StandardCompany")
+	cmd = exec.Command("git", "config", "--global", "user.name", "StandardCompany")
+	cmd.Dir = "/home/chaincode/requirement-test"
+	err = cmd.Run()
+
+	CheckIfError(err)
+}
+
+func MergeOnPeer(id string, branch string) {
+	var pullRef string
+	pullRef = "pull/" + id + "/head:" + branch
+
+	log.Printf("Running git fetch origin pull/%s/head:%s", id, branch)
+	cmd := exec.Command("git", "fetch", "origin", pullRef)
+	cmd.Dir = "/home/chaincode/requirement-test"
+	err := cmd.Run()
+
+	CheckIfError(err)
+
+	log.Printf("Running git merge --no-ff --no-edit %s", branch)
+	cmd = exec.Command("git", "merge", "--no-ff", "--no-edit", branch)
+	cmd.Dir = "/home/chaincode/requirement-test"
+	err = cmd.Run()
+
+	CheckIfError(err)
+
+	log.Printf("Running git status")
+	cmd = exec.Command("git", "status")
+	cmd.Dir = "/home/chaincode/requirement-test"
+	err = cmd.Run()
+
+	CheckIfError(err)
+}
+
+// CheckArgs should be used to ensure the right command line arguments are
+// passed before executing an example.
+func CheckArgs(arg ...string) {
+	if len(os.Args) < len(arg)+1 {
+		Warning("Usage: %s %s", os.Args[0], strings.Join(arg, " "))
+		os.Exit(1)
+	}
+}
+
+// CheckIfError should be used to naively panics if an error is not nil.
+func CheckIfError(err error) {
+	if err == nil {
+		return
+	}
+
+	fmt.Printf("\x1b[31;1m%s\x1b[0m\n", fmt.Sprintf("error: %s", err))
+	os.Exit(1)
+}
+
+// Info should be used to describe the example commands that are about to run.
+func Info(format string, args ...interface{}) {
+	fmt.Printf("\x1b[34;1m%s\x1b[0m\n", fmt.Sprintf(format, args...))
+}
+
+// Warning should be used to display a warning
+func Warning(format string, args ...interface{}) {
+	fmt.Printf("\x1b[36;1m%s\x1b[0m\n", fmt.Sprintf(format, args...))
+}
+
+/**
+ * Main Function
+ *
+ */
+func main() {
 	chaincode, err := contractapi.NewChaincode(new(SmartContract))
 
 	if err != nil {

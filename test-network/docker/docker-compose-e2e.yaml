@@ -63,7 +63,7 @@ services:
     networks:
       - test
 
-    orderer.requirementnet.com:
+  orderer.requirementnet.com:
       container_name: orderer.requirementnet.com
       image: hyperledger/fabric-orderer:$IMAGE_TAG
       environment:
@@ -96,7 +96,7 @@ services:
       networks:
         - test
 
-    peer0.org1.requirementnet.com:
+  peer0.org1.requirementnet.com:
       container_name: peer0.org1.requirementnet.com
       image: hyperledger/fabric-peer:$IMAGE_TAG
       environment:
@@ -136,7 +136,7 @@ services:
       networks:
         - test
 
-    peer0.org2.requirementnet.com:
+  peer0.org2.requirementnet.com:
       container_name: peer0.org2.requirementnet.com
       image: hyperledger/fabric-peer:$IMAGE_TAG
       environment:
